@@ -1,0 +1,24 @@
+<launch>
+  <!-- 启动Gazebo空世界 -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch" />
+
+  <!-- 加载URDF模型到参数服务器 -->
+  <param
+    name="robot_description"
+    textfile="$(find nav_simplified_model)/urdf/nav_simplified_model.urdf" />
+
+  <!-- 在Gazebo中生成机器人模型 -->
+  <node
+    name="spawn_model"
+    pkg="gazebo_ros"
+    type="spawn_model"
+    args="-urdf -param robot_description -model nav_simplified_model -x 0 -y 0 -z 0.05"
+    output="screen" />
+
+  <!-- 机器人状态发布器 -->
+  <node
+    name="robot_state_publisher"
+    pkg="robot_state_publisher"
+    type="robot_state_publisher" />
+
+</launch>

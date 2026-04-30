@@ -1,0 +1,7 @@
+# Fixed geographic origin for the provided Chongqing bag.
+# yaw_enu follows ROS REP-103 / robot_localization convention: 0=east, CCW positive.
+frame_id: map
+latitude: 29.478019714355
+longitude: 106.634170532227
+altitude: 269.259979
+yaw_enu: 2.443460953000

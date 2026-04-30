@@ -1,0 +1,8 @@
+build
+install
+log
+doc/html
+*.cproject
+*.project
+*.settings
+*.vscode

@@ -1,0 +1,31 @@
+# ROS2 / colcon build outputs
+build/
+install/
+log/
+src/build/
+src/install/
+src/log/
+
+# bag / recording data
+bags/
+*.bag
+*.db3
+*.mcap
+
+# generated frame graphs
+frames_*.gv
+frames_*.pdf
+
+# local/archive files
+.codex
+codex_archived_chats/
+rollback_snapshots/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# editor/system
+.vscode/
+.idea/
+.DS_Store

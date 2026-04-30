@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot name="nav_simplified_model">
+  <!-- Updated URDF with mass, inertia, collision volumes, wheel friction and constraints -->
+  <link name="body">
+    <inertial>
+      <origin xyz="0 0 -0.05" rpy="0 0 0"/>
+      <mass value="20"/>
+      <inertia ixx="0.5" ixy="0" ixz="0" iyy="0.8" iyz="0" izz="0.5"/>
+    </inertial>
+    <visual>
+      <geometry><mesh filename="package://nav_simplified_model/meshes/base_link.STL"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+      <geometry><box size="1.0 0.7 0.3"/></geometry>
+    </collision>
+  </link>
+
+  <!-- ROS navigation friendly base frame -->
+  <link name="base_link"/>
+  <joint name="body_to_base_link_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="body"/>
+    <child link="base_link"/>
+  </joint>
+
+  <!-- wheel template values -->
+  <!-- Each wheel has friction, rolling resistance, steering constraint -->
+
+  <!-- 前左轮 (wheel1) -->
+  <link name="wheel1_Link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="2.5"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.02" iyz="0" izz="0.01"/>
+    </inertial>
+    <visual><geometry><mesh filename="package://nav_simplified_model/meshes/wheel1_Link.STL"/></geometry></visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <!-- 修正：碰撞半径改为0.26m -->
+      <geometry><cylinder radius="0.26" length="0.06"/></geometry>
+    </collision>
+  </link>
+
+  <joint name="wheel1_joint" type="continuous">
+    <origin xyz="0.45474 0.4775 0" rpy="0 0 0"/>
+    <parent link="body"/>
+    <child link="wheel1_Link"/>
+    <!-- 修正：右侧车轮axis应该是正方向 -->
+    <axis xyz="0 1 0"/>
+    <limit effort="100" velocity="20"/>
+    <dynamics damping="0.01" friction="0.0"/>
+  </joint>
+
+  <!-- 后左轮 (wheel2) -->
+  <link name="wheel2_Link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="2.5"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.02" iyz="0" izz="0.01"/>
+    </inertial>
+    <visual><geometry><mesh filename="package://nav_simplified_model/meshes/wheel2_Link.STL"/></geometry></visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <!-- 修正：碰撞半径改为0.26m -->
+      <geometry><cylinder radius="0.26" length="0.06"/></geometry>
+    </collision>
+  </link>
+
+  <joint name="wheel2_joint" type="continuous">
+    <origin xyz="-0.45372 0.4775 0" rpy="0 0 0"/>
+    <parent link="body"/>
+    <child link="wheel2_Link"/>
+    <!-- 修正：右侧车轮axis应该是正方向 -->
+    <axis xyz="0 1 0"/>
+    <limit effort="100" velocity="20"/>
+    <dynamics damping="0.01" friction="0.0"/>
+  </joint>
+
+  <!-- 前右轮 (wheel3) -->
+  <link name="wheel3_Link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="2.5"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.02" iyz="0" izz="0.01"/>
+    </inertial>
+    <visual><geometry><mesh filename="package://nav_simplified_model/meshes/wheel3_Link.STL"/></geometry></visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <!-- 修正：碰撞半径改为0.26m -->
+      <geometry><cylinder radius="0.26" length="0.06"/></geometry>
+    </collision>
+  </link>
+
+  <joint name="wheel3_joint" type="continuous">
+    <origin xyz="0.45474 -0.4775 0" rpy="0 0 0"/>
+    <parent link="body"/>
+    <child link="wheel3_Link"/>
+    <!-- 修正：右侧车轮axis应该是正方向 -->
+    <axis xyz="0 1 0"/>
+    <limit effort="100" velocity="20"/>
+    <dynamics damping="0.01" friction="0.0"/>
+  </joint>
+
+  <!-- 后右轮 (wheel4) -->
+  <link name="wheel4_Link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="2.5"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.02" iyz="0" izz="0.01"/>
+    </inertial>
+    <visual><geometry><mesh filename="package://nav_simplified_model/meshes/wheel4_Link.STL"/></geometry></visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <!-- 修正：碰撞半径改为0.26m -->
+      <geometry><cylinder radius="0.26" length="0.06"/></geometry>
+    </collision>
+  </link>
+
+  <joint name="wheel4_joint" type="continuous">
+    <origin xyz="-0.45372 -0.4775 0" rpy="0 0 0"/>
+    <parent link="body"/>
+    <child link="wheel4_Link"/>
+    <!-- 修正：右侧车轮axis应该是正方向 -->
+    <axis xyz="0 1 0"/>
+    <limit effort="100" velocity="20"/>
+    <dynamics damping="0.01" friction="0.0"/>
+  </joint>
+
+  <!-- lidar -->
+  <link name="lidar_Link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.15"/>
+      <inertia ixx="0.00004" ixy="0" ixz="0" iyy="0.00004" iyz="0" izz="0.00007"/>
+    </inertial>
+    <visual><geometry><mesh filename="package://nav_simplified_model/meshes/lidar_Link.STL"/></geometry></visual>
+    <collision><geometry><cylinder radius="0.03" length="0.06"/></geometry></collision>
+  </link>
+
+  <joint name="lidar_joint" type="fixed">
+    <!-- Visualization alignment: keep lidar frame coincident with body frame -->
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="body"/>
+    <child link="lidar_Link"/>
+  </joint>
+
+  <!-- camera -->
+  <link name="camera_Link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+    <visual><geometry><mesh filename="package://nav_simplified_model/meshes/camera_Link.STL"/></geometry></visual>
+    <collision><geometry><box size="0.08 0.05 0.05"/></geometry></collision>
+  </link>
+
+  <joint name="camera_joint" type="fixed">
+    <!-- Visualization alignment: keep camera frame coincident with body frame -->
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="body"/>
+    <child link="camera_Link"/>
+  </joint>
+
+  <!-- ==================== Gazebo 插件配置 ==================== -->
+
+  <!-- 轮子摩擦力设置 -->
+  <gazebo reference="wheel1_Link">
+    <mu1>1.5</mu1>
+    <mu2>1.5</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="wheel2_Link">
+    <mu1>1.5</mu1>
+    <mu2>1.5</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="wheel3_Link">
+    <mu1>1.5</mu1>
+    <mu2>1.5</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="wheel4_Link">
+    <mu1>1.5</mu1>
+    <mu2>1.5</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="body">
+    <material>Gazebo/Blue</material>
+  </gazebo>
+
+  <!-- lidar sensor output for AMCL and costmaps -->
+  <gazebo reference="lidar_Link">
+    <sensor name="lidar_sensor" type="ray">
+      <pose>0 0 0 0 0 0</pose>
+      <visualize>true</visualize>
+      <update_rate>10.0</update_rate>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>720</samples>
+            <resolution>1</resolution>
+            <min_angle>-3.1415926</min_angle>
+            <max_angle>3.1415926</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.10</min>
+          <max>30.0</max>
+          <resolution>0.01</resolution>
+        </range>
+      </ray>
+      <plugin name="gazebo_ros_ray_sensor" filename="libgazebo_ros_ray_sensor.so">
+        <ros>
+          <remapping>~/out:=scan</remapping>
+        </ros>
+        <output_type>sensor_msgs/LaserScan</output_type>
+        <frame_name>lidar_Link</frame_name>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <!-- 四轮滑移转向驱动控制器 -->
+  <gazebo>
+    <plugin name="skid_steer_drive_controller" filename="libgazebo_ros_skid_steer_drive.so">
+      <updateRate>50.0</updateRate>
+      <robotNamespace>/</robotNamespace>
+      
+      <!-- 修正后的车轮映射（根据实际位置） -->
+      <!-- wheel1: 前左, wheel2: 后左, wheel3: 前右, wheel4: 后右 -->
+      <leftFrontJoint>wheel1_joint</leftFrontJoint>
+      <rightFrontJoint>wheel3_joint</rightFrontJoint>
+      <leftRearJoint>wheel2_joint</leftRearJoint>
+      <rightRearJoint>wheel4_joint</rightRearJoint>
+      
+      <!-- 轮子参数 -->
+      <wheelSeparation>0.955</wheelSeparation>
+      <!-- 修正：车轮直径改为0.52m（半径0.26m） -->
+      <wheelDiameter>0.52</wheelDiameter>
+      
+      <!-- 扭矩 -->
+      <torque>200</torque>
+      
+      <!-- ROS话题 -->
+      <commandTopic>cmd_vel</commandTopic>
+      <odometryTopic>odom</odometryTopic>
+      
+      <!-- 坐标系 -->
+      <odometryFrame>odom</odometryFrame>
+      <robotBaseFrame>body</robotBaseFrame>
+      
+      <!-- 里程计发布 -->
+      <broadcastTF>true</broadcastTF>
+      
+      <!-- 协方差 -->
+      <covariance_x>0.0001</covariance_x>
+      <covariance_y>0.0001</covariance_y>
+      <covariance_yaw>0.01</covariance_yaw>
+    </plugin>
+  </gazebo>
+
+</robot>

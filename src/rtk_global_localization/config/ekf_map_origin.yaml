@@ -1,0 +1,82 @@
+ekf_filter_node_map:
+  ros__parameters:
+    use_sim_time: false
+    frequency: 30.0
+    sensor_timeout: 0.3
+    two_d_mode: true
+    predict_to_current_time: true
+    transform_time_offset: 0.0
+    transform_timeout: 0.2
+    print_diagnostics: true
+    debug: false
+    publish_tf: true
+
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: body
+    base_link_frame_output: body
+    world_frame: map
+
+    # Use FAST-LIO's raw local odometry as the continuous motion source.
+    # The launch file can enable odom0_differential=true so the map filter
+    # consumes pose increments instead of treating odom-frame pose as an
+    # absolute map-frame measurement.
+    odom0: /odometry/local
+    odom0_config: [true,  true,  false,
+                   false, false, true,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    odom0_queue_size: 30
+    odom0_nodelay: false
+    odom0_differential: false
+    odom0_relative: false
+
+    # /odometry/gps must come from navsat_transform_node. When
+    # use_map_origin_localization=true, navsat_transform uses the saved mapping
+    # origin as a fixed datum, so arbitrary bag start offsets still land in the
+    # same map frame.
+    odom1: /odometry/gps
+    odom1_config: [true,  true,  false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    odom1_queue_size: 20
+    odom1_nodelay: false
+    odom1_differential: false
+    odom1_relative: false
+    # In arbitrary-start playback, the first GPS sample can be many meters away
+    # from the filter's zero initial state. Keep this large so the saved-datum
+    # GPS measurement is accepted and the global filter can establish map->odom.
+    odom1_pose_rejection_threshold: 1000.0
+
+    # GPS constrains X/Y, but it does not make the yaw between the saved map
+    # frame and a freshly reinitialized FAST-LIO odom frame observable enough on
+    # its own. Feed the dual-antenna heading after converting it from absolute
+    # ENU yaw into map-relative yaw (yaw_map = yaw_enu - yaw_origin_enu).
+    imu0: /rtk/navsat_heading/map_relative
+    imu0_config: [false, false, false,
+                  false, false, true,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
+    imu0_queue_size: 20
+    imu0_nodelay: true
+    imu0_differential: false
+    imu0_relative: false
+
+    use_control: false
+
+    process_noise_covariance: [0.30, 0.30, 1e-3,
+                               1e-3, 1e-3, 0.08,
+                               0.50, 0.50, 1e-3,
+                               1e-3, 1e-3, 0.12,
+                               1e-3, 1e-3, 1e-3]
+
+    initial_estimate_covariance: [1000.0, 1000.0, 1e-9,
+                                  1e-9, 1e-9, 10.0,
+                                  10.0, 10.0, 1e-9,
+                                  1e-9, 1e-9, 10.0,
+                                  1e-9, 1e-9, 1e-9]

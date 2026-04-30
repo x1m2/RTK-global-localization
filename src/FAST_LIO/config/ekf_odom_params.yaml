@@ -1,0 +1,38 @@
+# ekf_filter_node_odom:
+#   ros__parameters:
+#     use_sim_time: true
+#     world_frame: odom
+#     odom_frame: odom
+#     base_link_frame: body
+    
+#     odom0: /Odometry 
+#     # 【修改重点1】：前6个必须是 true！我们要榨干 FAST-LIO 最强的高精度位姿！
+#     odom0_config: [true, true, true, true, true, true, false, false, false, false, false, false, false, false, false]
+
+
+ekf_filter_node_odom:
+  ros__parameters:
+    use_sim_time: true
+    frequency: 10.0
+    sensor_timeout: 0.2
+    two_d_mode: true
+    publish_tf: true
+    debug: true
+    debug_out_file: /tmp/ekf_odom_debug.txt
+    print_diagnostics: true
+
+    world_frame: odom
+    odom_frame: odom
+    base_link_frame: body
+
+    odom0: /Odometry
+    # [X, Y, Z, Roll, Pitch, Yaw, VX, VY, VZ, Vroll, Vpitch, Vyaw, AX, AY, AZ]
+    odom0_config: [true, true, false,
+                   false, false, true,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    odom0_queue_size: 20
+    odom0_nodelay: false
+    odom0_differential: false
+    odom0_relative: false

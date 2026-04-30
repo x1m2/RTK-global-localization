@@ -1,0 +1,50 @@
+wheel1_joint_controller:
+  type: velocity_controllers/JointVelocityController
+  joint: wheel1_joint
+
+wheel2_joint_controller:
+  type: velocity_controllers/JointVelocityController
+  joint: wheel2_joint
+
+wheel3_joint_controller:
+  type: velocity_controllers/JointVelocityController
+  joint: wheel3_joint
+
+wheel4_joint_controller:
+  type: velocity_controllers/JointVelocityController
+  joint: wheel4_joint
+
+
+diff_drive_controller:
+  type: diff_drive_controller/DiffDriveController
+
+  left_wheel: ['wheel1_joint', 'wheel2_joint']
+  right_wheel: ['wheel3_joint', 'wheel4_joint']
+
+  publish_rate: 50
+  pose_covariance_diagonal: [0.001, 0.001, 0.0, 0.0, 0.0, 0.01]
+  twist_covariance_diagonal: [0.001, 0.001, 0.0, 0.0, 0.0, 0.01]
+
+  wheel_separation: 0.95
+  wheel_radius: 0.26
+
+  # 速度限制
+  linear:
+    x:
+      has_velocity_limits: true
+      max_velocity: 5        # 最大线速度 (m/s)
+      has_acceleration_limits: true
+      max_acceleration: 2.0     # 最大加速度
+
+  angular:
+    z:
+      has_velocity_limits: true
+      max_velocity: 2.0        # 最大角速度 (rad/s)
+      has_acceleration_limits: true
+      max_acceleration: 1.0
+
+  cmd_vel_timeout: 0.25
+  allow_multiple_cmd_vel_publishers: true
+
+
+

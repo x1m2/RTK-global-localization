@@ -1,0 +1,27 @@
+<launch>
+  <!-- 加载URDF模型到参数服务器 -->
+  <param
+    name="robot_description"
+    textfile="$(find nav_simplified_model)/urdf/nav_simplified_model.urdf" />
+
+  <!-- 关节状态发布器GUI -->
+  <node
+    name="joint_state_publisher_gui"
+    pkg="joint_state_publisher_gui"
+    type="joint_state_publisher_gui" />
+
+  <!-- 机器人状态发布器 -->
+  <node
+    name="robot_state_publisher"
+    pkg="robot_state_publisher"
+    type="robot_state_publisher" />
+
+  <!-- 启动RViz -->
+  <node
+    name="rviz"
+    pkg="rviz"
+    type="rviz"
+    args="-d $(find nav_simplified_model)/urdf.rviz" />
+</launch>
+
+

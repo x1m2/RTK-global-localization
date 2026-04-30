@@ -1,0 +1,14 @@
+navsat_transform:
+  ros__parameters:
+    use_sim_time: true
+    frequency: 30.0
+    delay: 3.0
+    magnetic_declination_radians: 0.0
+    yaw_offset: 1.0472 
+    broadcast_cartesian_transform: true
+    wait_for_datum: false
+    publish_filtered_gps: true
+    # 强制将输出话题的 frame 设为 map
+    world_frame: map
+    use_odometry_yaw: true
+    

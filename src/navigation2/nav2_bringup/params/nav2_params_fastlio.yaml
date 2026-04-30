@@ -1,0 +1,433 @@
+# AMCL：全局定位。这里主要调“地图定位是否稳、收敛是否快”，不直接决定局部障碍何时消失。
+# `alpha1~alpha5` 越大，对里程计/转向误差越不信任，粒子分布更散，定位更稳但更慢。
+# `max_particles` 越大越稳但更耗 CPU；`min_particles` 越大越不容易丢定位。
+# `initial_pose.*` 是默认初始位姿。
+amcl:
+  ros__parameters:
+    use_sim_time: True
+    alpha1: 0.2
+    alpha2: 0.2
+    alpha3: 0.2
+    alpha4: 0.2
+    alpha5: 0.2
+    base_frame_id: "body"
+    beam_skip_distance: 0.5
+    beam_skip_error_threshold: 0.9
+    beam_skip_threshold: 0.3
+    do_beamskip: false
+    global_frame_id: "map"
+    lambda_short: 0.1
+    laser_likelihood_max_dist: 2.0
+    laser_max_range: 100.0
+    laser_min_range: -1.0
+    laser_model_type: "likelihood_field"
+    max_beams: 60
+    max_particles: 2000
+    min_particles: 500
+    odom_frame_id: "odom"
+    pf_err: 0.05
+    pf_z: 0.99
+    recovery_alpha_fast: 0.0
+    recovery_alpha_slow: 0.0
+    resample_interval: 1
+    robot_model_type: "nav2_amcl::DifferentialMotionModel"
+    save_pose_rate: 0.5
+    sigma_hit: 0.2
+    always_reset_initial_pose: true
+    set_initial_pose: true
+    initial_pose.x: 0.0
+    initial_pose.y: 0.0
+    initial_pose.z: 0.0
+    initial_pose.yaw: 0.0
+    tf_broadcast: true
+    transform_tolerance: 1.0
+    update_min_a: 0.2
+    update_min_d: 0.25
+    z_hit: 0.5
+    z_max: 0.05
+    z_rand: 0.5
+    z_short: 0.05
+    # AMCL 依赖的激光话题；这个话题没数据，定位就不会更新。
+    scan_topic: /scan
+
+bt_navigator:
+  ros__parameters:
+    # BT Navigator：把“去目标/沿路径/恢复动作”串起来。
+    use_sim_time: True
+    global_frame: map
+    robot_base_frame: body
+    # BT 循环周期，单位毫秒。越小 tick 越快，响应更快但 CPU 更高。
+    odom_topic: /Odometry
+    bt_loop_duration: 5
+    # 等待服务/动作的超时，单位毫秒。越大更耐等慢启动服务，但启动时更慢。
+    default_server_timeout: 20
+    wait_for_service_timeout: 1000
+    # 'default_nav_through_poses_bt_xml' and 'default_nav_to_pose_bt_xml' are use defaults:
+    # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml
+    # nav2_bt_navigator/navigate_through_poses_w_replanning_and_recovery.xml
+    # They can be set here or via a RewrittenYaml remap from a parent launch file to Nav2.
+    plugin_lib_names:
+      - nav2_compute_path_to_pose_action_bt_node
+      - nav2_compute_path_through_poses_action_bt_node
+      - nav2_smooth_path_action_bt_node
+      - nav2_follow_path_action_bt_node
+      - nav2_spin_action_bt_node
+      - nav2_wait_action_bt_node
+      - nav2_assisted_teleop_action_bt_node
+      - nav2_back_up_action_bt_node
+      - nav2_drive_on_heading_bt_node
+      - nav2_clear_costmap_service_bt_node
+      - nav2_is_stuck_condition_bt_node
+      - nav2_goal_reached_condition_bt_node
+      - nav2_goal_updated_condition_bt_node
+      - nav2_globally_updated_goal_condition_bt_node
+      - nav2_is_path_valid_condition_bt_node
+      - nav2_initial_pose_received_condition_bt_node
+      - nav2_reinitialize_global_localization_service_bt_node
+      - nav2_rate_controller_bt_node
+      - nav2_distance_controller_bt_node
+      - nav2_speed_controller_bt_node
+      - nav2_truncate_path_action_bt_node
+      - nav2_truncate_path_local_action_bt_node
+      - nav2_goal_updater_node_bt_node
+      - nav2_recovery_node_bt_node
+      - nav2_pipeline_sequence_bt_node
+      - nav2_round_robin_node_bt_node
+      - nav2_transform_available_condition_bt_node
+      - nav2_time_expired_condition_bt_node
+      - nav2_path_expiring_timer_condition
+      - nav2_distance_traveled_condition_bt_node
+      - nav2_single_trigger_bt_node
+      - nav2_goal_updated_controller_bt_node
+      - nav2_is_battery_low_condition_bt_node
+      - nav2_navigate_through_poses_action_bt_node
+      - nav2_navigate_to_pose_action_bt_node
+      - nav2_remove_passed_goals_action_bt_node
+      - nav2_planner_selector_bt_node
+      - nav2_controller_selector_bt_node
+      - nav2_goal_checker_selector_bt_node
+      - nav2_controller_cancel_bt_node
+      - nav2_path_longer_on_approach_bt_node
+      - nav2_wait_cancel_bt_node
+      - nav2_spin_cancel_bt_node
+      - nav2_back_up_cancel_bt_node
+      - nav2_assisted_teleop_cancel_bt_node
+      - nav2_drive_on_heading_cancel_bt_node
+      - nav2_is_battery_charging_condition_bt_node
+
+bt_navigator_navigate_through_poses_rclcpp_node:
+  ros__parameters:
+    use_sim_time: True
+
+bt_navigator_navigate_to_pose_rclcpp_node:
+  ros__parameters:
+    use_sim_time: True
+
+controller_server:
+  ros__parameters:
+    # controller_server：局部控制器。这里影响“跟路有多紧、躲障有多激进、速度有多快”。
+    use_sim_time: True
+    # 控制循环频率（Hz），越高越跟手，但 CPU 开销更大。
+    controller_frequency: 20.0
+    # 低于这个阈值的速度会被当作 0，用于“是否停住”的判定。
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.0
+    min_theta_velocity_threshold: 0.001
+    # 控制短暂失败容忍时间，单位秒。越大越不容易因为瞬时失配就退出。
+    failure_tolerance: 0.3
+    progress_checker_plugin: "progress_checker"
+    goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
+    controller_plugins: ["FollowPath"]
+
+    # Progress checker parameters
+    # 这组参数决定“多久没真正移动就算卡住”。
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.5
+      movement_time_allowance: 10.0
+    # Goal checker parameters
+    #precise_goal_checker:
+    #  plugin: "nav2_controller::SimpleGoalChecker"
+    #  xy_goal_tolerance: 0.25
+    #  yaw_goal_tolerance: 0.25
+    #  stateful: True
+    general_goal_checker:
+      stateful: True
+      plugin: "nav2_controller::SimpleGoalChecker"
+      # 目标容差越大，越容易判定到点；越小，停得更准但更苛刻。
+      xy_goal_tolerance: 0.25
+      yaw_goal_tolerance: 0.25
+    # DWB parameters
+    # DWB 里：BaseObstacle.scale 越大越躲障碍；PathAlign/PathDist 越大越贴路径；
+    # GoalDist/GoalAlign 越大越偏向尽快收敛到目标。
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      debug_trajectory_details: True
+      min_vel_x: 0.0
+      min_vel_y: 0.0
+      max_vel_x: 0.80
+      max_vel_y: 1.0
+      max_vel_theta: 0.5
+      min_speed_xy: 0.0
+      max_speed_xy: 0.40
+      min_speed_theta: 0.0
+      # Add high threshold velocity for turtlebot 3 issue.
+      # https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/75
+      acc_lim_x: 1.0
+      acc_lim_y: 0.0
+      acc_lim_theta: 2.2
+      decel_lim_x: -1.2
+      decel_lim_y: 0.0
+      decel_lim_theta: -2.2
+      vx_samples: 20
+      vy_samples: 1
+      vtheta_samples: 20
+      # 轨迹预测时长，越大越稳但越慢。
+      sim_time: 1.2
+      # 轨迹离散步长，越小越精细但更耗算力。
+      linear_granularity: 0.05
+      angular_granularity: 0.025
+      # TF 容忍时间，越大越不容易报时延，但也更容易吃到旧位姿。
+      transform_tolerance: 0.2
+      xy_goal_tolerance: 0.25
+      trans_stopped_velocity: 0.05
+      short_circuit_trajectory_evaluation: True
+      stateful: True
+      critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+      BaseObstacle.scale: 0.35
+      PathAlign.scale: 20.0
+      PathAlign.forward_point_distance: 0.1
+      GoalAlign.scale: 16.0
+      GoalAlign.forward_point_distance: 0.1
+      PathDist.scale: 28.0
+      GoalDist.scale: 20.0
+      RotateToGoal.scale: 32.0
+      RotateToGoal.slowing_factor: 5.0
+      RotateToGoal.lookahead_time: -1.0
+
+# local_costmap：机器人周围的实时避障层。
+# 这里决定“局部障碍多久消失、膨胀有多厚、机器人经过的轨迹保留多久”。
+# `global_frame: odom` + `rolling_window: true` 表示它跟着机器人滚动，不会因为 `2D Pose Estimate` 自动清空。
+# `width/height` 越小，旧障碍越快滚出窗口；越大，残影更久但视野更大。
+# `update_frequency` 是内部重算频率；`publish_frequency` 是对外发布频率。
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      update_frequency: 40.0
+      publish_frequency: 30.0
+      global_frame: odom
+      robot_base_frame: body
+      use_sim_time: True
+      transform_tolerance: 0.25
+      rolling_window: true
+      # 注意：当前工程里的 nav2_costmap_2d 把 width/height 声明为整数参数，不能写 2.5 这类浮点数。
+      width: 4
+      height: 4
+      resolution: 0.05
+      # footprint 是机器人外形；画大更保守，画小更贴边但更冒险。
+      footprint: "[[0.30, 0.35], [0.30, -0.35], [-0.30, -0.35], [-0.30, 0.35]]"
+      footprint_padding: 0.0
+      plugins: ["obstacle_layer", "inflation_layer"]
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        # footprint_clearing_enabled 会把机器人底盘投影范围内的格子清成 free。
+        footprint_clearing_enabled: True
+        # `min_obstacle_height/max_obstacle_height` 控制哪些高度的点会被当成障碍；
+        # 抬高下限能压地面噪声，但可能漏掉低矮障碍。
+        min_obstacle_height: -1.0
+        max_obstacle_height: 2.0
+        # `obstacle_cloud` 负责标障碍；`obstacle_scan` 作为激光兜底输入，同时做标障碍+清障碍。
+        observation_sources: obstacle_cloud obstacle_scan
+        obstacle_cloud:
+          topic: /scan_local_cloud
+          expected_update_rate: 0.0
+          # 这一路是本地障碍的主输入，只写障碍，不负责清除。
+          # `observation_persistence` 越大，旧观测在 buffer 里留得越久，障碍更容易“粘住”；0 表示只保留最新观测。
+          observation_persistence: 0.0
+          data_type: "PointCloud2"
+          clearing: False
+          marking: True
+          min_obstacle_height: -1.0
+          max_obstacle_height: 2.0
+          raytrace_max_range: 2.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.0
+          obstacle_min_range: 0.05
+        obstacle_scan:
+          topic: /scan_local
+          expected_update_rate: 0.0
+          observation_persistence: 0.0
+          data_type: "LaserScan"
+          inf_is_valid: True
+          # 这一路既清空也标障碍，提升“看到了但没落到costmap”的容错性。
+          clearing: True
+          marking: True
+          raytrace_max_range: 4.5
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.0
+          obstacle_min_range: 0.05
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        # `inflation_radius` 越大，障碍周围“膨胀圈”越宽；越小，障碍消散后看起来更干净。
+        # `cost_scaling_factor` 越大，膨胀代价值衰减越快，边缘更陡。
+        # 当前需要更明显的局部避障边界：增大半径并降低衰减，避免“看起来没有膨胀层”。
+        cost_scaling_factor: 10.0
+        inflation_radius: 0.25
+      always_send_full_costmap: True
+
+# global_costmap：全局规划用的地图层，主要影响路径是否绕行，不负责局部实时消散。
+# `track_unknown_space: true` 会把未知区域当未知处理，更保守。
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      update_frequency: 6.0
+      publish_frequency: 4.0
+      global_frame: map
+      robot_base_frame: body
+      use_sim_time: True
+      transform_tolerance: 0.8
+      footprint: "[[0.30, 0.35], [0.30, -0.35], [-0.30, -0.35], [-0.30, 0.35]]"
+      footprint_padding: 0.0
+      resolution: 0.05
+      track_unknown_space: true
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        min_obstacle_height: -1.0
+        max_obstacle_height: 2.0
+        # `scan` 这一路主要给全局规划用，通常比 local costmap 更保守。
+        observation_sources: scan
+        scan:
+          topic: /scan
+          expected_update_rate: 0.0
+          # 这个值越大，全局障碍保留越久；太大可能“粘住”，太小可能闪烁。
+          observation_persistence: 0.1
+          min_obstacle_height: -1.0
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          # `raytrace_max_range` 决定清障范围；`obstacle_max_range` 决定多远内的点会被写成障碍。
+          raytrace_max_range: 3.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.5
+          obstacle_min_range: 0.0
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        # 全局膨胀通常比 local 更稳，避免规划贴障碍太近。
+        cost_scaling_factor: 8.0
+        inflation_radius: 0.32
+      always_send_full_costmap: True
+
+# map_server：静态地图加载。`yaml_filename` 会由 launch 传入覆盖。
+map_server:
+  ros__parameters:
+    use_sim_time: True
+    # Overridden in launch by the "map" launch configuration or provided default value.
+    # To use in yaml, remove the default "map" value in the tb3_simulation_launch.py file & provide full path to map below.
+    yaml_filename: ""
+
+# map_saver：保存地图时的默认阈值。
+map_saver:
+  ros__parameters:
+    use_sim_time: True
+    save_map_timeout: 5.0
+    free_thresh_default: 0.25
+    occupied_thresh_default: 0.65
+    map_subscribe_transient_local: True
+
+# planner_server：全局路径规划。
+# `allow_unknown: true` 允许在未知区规划；`false` 更保守。
+# `tolerance` 越大，目标点附近越容易找到可行路径，但路径可能更松。
+planner_server:
+  ros__parameters:
+    expected_planner_frequency: 30.0
+    use_sim_time: True
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_navfn_planner/NavfnPlanner"
+      tolerance: 0.5
+      use_astar: false
+      allow_unknown: true
+
+# smoother_server：对规划路径做平滑。
+# `max_its` 越大平滑越充分但越慢；`tolerance` 越小越贴原路径。
+smoother_server:
+  ros__parameters:
+    use_sim_time: True
+    smoother_plugins: ["simple_smoother"]
+    simple_smoother:
+      plugin: "nav2_smoother::SimpleSmoother"
+      tolerance: 1.0e-10
+      max_its: 1000
+      do_refinement: True
+
+# behavior_server：原地转向/后退/对准 heading 等局部动作。
+# `cycle_frequency` 越高，行为响应越快，但 CPU 更高。
+behavior_server:
+  ros__parameters:
+    costmap_topic: local_costmap/costmap_raw
+    footprint_topic: local_costmap/published_footprint
+    cycle_frequency: 10.0
+    behavior_plugins: ["spin", "backup", "drive_on_heading", "assisted_teleop", "wait"]
+    spin:
+      plugin: "nav2_behaviors/Spin"
+    backup:
+      plugin: "nav2_behaviors/BackUp"
+    drive_on_heading:
+      plugin: "nav2_behaviors/DriveOnHeading"
+    wait:
+      plugin: "nav2_behaviors/Wait"
+    assisted_teleop:
+      plugin: "nav2_behaviors/AssistedTeleop"
+    global_frame: odom
+    robot_base_frame: body
+    transform_tolerance: 0.1
+    use_sim_time: true
+    simulate_ahead_time: 2.0
+    max_rotational_vel: 1.0
+    min_rotational_vel: 0.4
+    rotational_acc_lim: 3.2
+
+robot_state_publisher:
+  ros__parameters:
+    use_sim_time: True
+
+# waypoint_follower：顺序执行多个 waypoint。
+# `loop_rate` 越高，检查/切换 waypoint 越快。
+# `waypoint_pause_duration` 单位是毫秒，越大每个点停得越久。
+waypoint_follower:
+  ros__parameters:
+    use_sim_time: True
+    loop_rate: 20
+    stop_on_failure: false
+    waypoint_task_executor_plugin: "wait_at_waypoint"
+    wait_at_waypoint:
+      plugin: "nav2_waypoint_follower::WaitAtWaypoint"
+      enabled: True
+      waypoint_pause_duration: 200
+
+# velocity_smoother：对最终速度做平滑，减少突变。
+# `smoothing_frequency` 越高，输出越细腻，但延迟和 CPU 会增加。
+# `feedback: OPEN_LOOP` 表示主要按指令自身平滑，不依赖闭环速度反馈。
+# `max_velocity/max_accel/max_decel` 分别限制最高速度、加速上限、减速上限。
+# `velocity_timeout` 超时没新速度就会停。
+velocity_smoother:
+  ros__parameters:
+    use_sim_time: True
+    smoothing_frequency: 20.0
+    scale_velocities: False
+    feedback: "OPEN_LOOP"
+    max_velocity: [0.26, 0.0, 1.0]
+    min_velocity: [-0.26, 0.0, -1.0]
+    max_accel: [2.5, 0.0, 3.2]
+    max_decel: [-2.5, 0.0, -3.2]
+    odom_topic: "/Odometry"
+    odom_duration: 0.1
+    deadband_velocity: [0.0, 0.0, 0.0]
+    velocity_timeout: 1.0
